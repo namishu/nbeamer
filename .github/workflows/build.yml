@@ -18,12 +18,11 @@ jobs:
       - name: Build assets and install with fonts
         run: |
           ./dev package --repo "$GITHUB_REPOSITORY"
-          python .build/dist/nbeamer install --from-dir .build/dist
+          python .build/dist/nbeamer install
       - name: Run regressions and build documentation
         run: |
           ./dev test
           ./dev docs
-          cp .build/docs/*/*.pdf .build/dist/
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -33,7 +32,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: package
-          path: .build/dist/
+          path: .build/dist/nbeamer
           include-hidden-files: true
   release:
     needs: test
@@ -46,7 +45,7 @@ jobs:
         with:
           name: package
           path: .build/dist
-      - run: gh release create "$TAG" .build/dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+      - run: gh release create "$TAG" .build/dist/nbeamer --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
         env:
           TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}

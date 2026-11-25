@@ -14,7 +14,7 @@ import tempfile
 import tomllib
 from urllib.parse import quote
 from urllib.request import Request, urlopen
-from zipfile import ZipFile
+from zipfile import BadZipFile, ZipFile
 
 DEFAULT_REPO = ""
 DOC = Path("doc/latex/nbeamer")
@@ -128,6 +128,7 @@ def prepare_fonts(root, stage):
             continue
         target = stage / file
         target.parent.mkdir(parents=True, exist_ok=True)
+        print(f"Downloading font {name}...", flush=True)
         download(profile["base_url"] + name, target)
         verified(target, expected)
         files.append(file)
@@ -141,17 +142,27 @@ def install(args):
     root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=root) as tmp:
         work = Path(tmp)
-        assets = args.from_dir
-        if assets is None:
+        archive = Path(sys.argv[0]).resolve()
+        if args.from_dir:
+            archive = args.from_dir / "nbeamer"
+            legacy = args.from_dir / "nbeamer.tds.zip"
+            if not archive.is_file() and legacy.is_file():
+                verified(legacy, (args.from_dir / "nbeamer.sha256").read_text().strip())
+                archive = legacy
+        elif args.command == "update" or args.version or args.repo != DEFAULT_REPO:
             if not args.repo:
                 raise ValueError("Supply --repo OWNER/REPOSITORY or --from-dir DIST")
-            assets = work
-            release = "download/" + quote(args.version, safe="") if args.version else "latest/download"
-            base = f"https://github.com/{args.repo}/releases/{release}"
-            for name in ("nbeamer.tds.zip", "nbeamer.sha256"):
-                download(f"{base}/{name}", work / name)
-        archive = assets / "nbeamer.tds.zip"
-        verified(archive, (assets / "nbeamer.sha256").read_text().strip())
+            print("Downloading nbeamer installer...", flush=True)
+            archive = work / "nbeamer"
+            if shutil.which("gh") and subprocess.run(
+                ["gh", "auth", "status", "--active"], capture_output=True
+            ).returncode == 0:
+                subprocess.run(["gh", "release", "download", *([args.version] if args.version else []),
+                                "--repo", args.repo, "--pattern", "nbeamer", "--dir", str(work)], check=True)
+            else:
+                release = "download/" + quote(args.version, safe="") if args.version else "latest/download"
+                download(f"https://github.com/{args.repo}/releases/{release}/nbeamer", archive)
+        print("Preparing template files...", flush=True)
         stage = work / "stage"
         files = PACKAGE_FILES.copy()
         with ZipFile(archive) as bundle:
@@ -167,6 +178,7 @@ def install(args):
                 target.write_bytes(bundle.read(file.as_posix()))
         if args.with_deps:
             try:
+                print("Checking TeX Live dependencies...", flush=True)
                 install_tex_dependencies(stage / TEX_REQUIREMENTS)
             except (ValueError, OSError, subprocess.CalledProcessError) as error:
                 raise ValueError(f"Installation failed during dependency setup: {error}") from error
@@ -180,6 +192,7 @@ def install(args):
                     font_files = prepare_fonts(root, stage)
                 except (OSError, HTTPException, ValueError, KeyError) as error:
                     warn_fonts(error)
+            print("Installing template and extensions...", flush=True)
             publish(root, stage, work, files)
             if font_files is not None:
                 try:
@@ -220,7 +233,7 @@ def main():
             uninstall(args)
         else:
             install(args)
-    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, BadZipFile, subprocess.CalledProcessError) as error:
         parser.exit(1, f"nbeamer: {error}\n")
 
 

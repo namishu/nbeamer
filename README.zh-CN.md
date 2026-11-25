@@ -39,10 +39,10 @@
 
 只用 TeX 自带字体时加 `--no-fonts`。如果已用系统包管理器配好 TeX 依赖，可加 `--no-deps`。Windows 用户可将下文的 `python3` 换成 `py -3`。
 
-**离线安装。** 把同一发布版本的安装器、`nbeamer.tds.zip` 和 `nbeamer.sha256` 放进同一目录，在该目录运行以下命令即可安装模板和扩展。
+**离线安装。** 下载安装器，在所在目录运行以下命令即可安装模板和扩展。
 
 ```sh
-python3 nbeamer install --from-dir . --no-deps --no-fonts
+python3 nbeamer install --no-deps --no-fonts
 ```
 
 ## 编译讲稿

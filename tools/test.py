@@ -575,9 +575,11 @@ def test(work):
     cls = package / "nbeamer.cls"
     cls.write_bytes(cls.read_bytes() + b"\n% local test marker\n")
     before_update = {p.relative_to(tree): p.read_bytes() for p in tree.rglob("*") if p.is_file()}
-    checksum = dist / "nbeamer.sha256"
-    checksum.write_text("0" * 64)
-    assert "Checksum mismatch" in run(cli + ["update", *options], work, env, expected=1)
+    corrupt = work / "corrupt"
+    corrupt.mkdir()
+    (corrupt / "nbeamer").write_bytes(b"incomplete installer")
+    assert "zip file" in run(cli + ["update", "--from-dir", str(corrupt),
+                                    "--texmfhome", str(tree)], work, env, expected=1)
     assert before_update == {p.relative_to(tree): p.read_bytes() for p in tree.rglob("*") if p.is_file()}
     source.write_text(sample.replace("{nbeamer}", "[fontset=custom]{nbeamer}\n"
         r"\setCJKsansfont{FandolSong-Regular.otf}"))

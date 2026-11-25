@@ -1,6 +1,6 @@
 """Build GitHub Release assets from a checkout."""
 import argparse
-import hashlib
+import tempfile
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -9,8 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def build(output, repo):
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / "nbeamer.tds.zip"
-    with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:
+    with tempfile.NamedTemporaryFile(dir=output, delete=False) as temp:
+        temp.write(b"#!/usr/bin/env python3\n")
+        installer = Path(temp.name)
+    with ZipFile(installer, "a", ZIP_DEFLATED) as bundle:
+        main = (ROOT / "tools/nbeamer").read_text().replace('DEFAULT_REPO = ""', f'DEFAULT_REPO = {repo!r}')
+        bundle.writestr("__main__.py", main)
         tex = ROOT / "tex"
         for file in [tex / "nbeamer.cls", *sorted(tex.glob("nbeamer-*.sty")), *sorted(tex.glob("nbeamer-*.def"))]:
             bundle.write(file, f"tex/latex/nbeamer/{file.name}")
@@ -19,10 +23,8 @@ def build(output, repo):
         bundle.write(ROOT / "texlive-requirements.txt", "doc/latex/nbeamer/texlive-requirements.txt")
         bundle.write(ROOT / "LICENSE", "doc/latex/nbeamer/LICENSE")
         bundle.write(ROOT / "README.md", "doc/latex/nbeamer/README.md")
-    (output / "nbeamer.sha256").write_text(hashlib.sha256(archive.read_bytes()).hexdigest() + "\n")
-    cli = output / "nbeamer"
-    cli.write_text((ROOT / "tools/nbeamer").read_text().replace('DEFAULT_REPO = ""', f'DEFAULT_REPO = {repo!r}'))
-    cli.chmod(0o755)
+    installer.chmod(0o755)
+    installer.replace(output / "nbeamer")
 
 
 if __name__ == "__main__":

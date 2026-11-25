@@ -39,10 +39,10 @@ The installer checks the [TeX Live dependencies](texlive-requirements.txt) and i
 
 Use `--no-fonts` to skip WenKai. If your system package manager supplies the TeX dependencies, use `--no-deps`. On Windows, replace `python3` below with `py -3`.
 
-**Offline installation.** Put the installer, `nbeamer.tds.zip`, and `nbeamer.sha256` from the same release in one folder. Run this command there to install the template and extensions:
+**Offline installation.** Download the installer and run this command in its folder:
 
 ```sh
-python3 nbeamer install --from-dir . --no-deps --no-fonts
+python3 nbeamer install --no-deps --no-fonts
 ```
 
 ## Compile slides
