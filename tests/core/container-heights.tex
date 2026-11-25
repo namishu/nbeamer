@@ -1,0 +1,22 @@
+\documentclass[fontset=fandol]{nbeamer}
+\newcommand{\sample}[1]{\begin{frame}{Heights}#1\par Next\end{frame}}
+\newcommand{\mini}[1]{\begin{minipage}[t][#1][t]{12\nbgrid}First\\Last\end{minipage}}
+\newcommand{\naturalmini}{\begin{minipage}[t]{12\nbgrid}First\\Last\end{minipage}}
+\newcommand{\row}[2]{\begin{columns}[#1]
+  \begin{column}{13\nbgrid}#2\end{column}
+  \begin{column}{13\nbgrid}Side\end{column}
+\end{columns}}
+\newcommand{\picturecontent}[1]{\begin{figure}\rule{3\nbgrid}{#1}\caption{Caption}\end{figure}}
+\begin{document}
+\sample{\mini{4\nbgrid}}
+\sample{\mini{5.5\nbgrid}}
+\sample{\row{height=4\nbgrid}{First\\Last}}
+\sample{\row{height=5.5\nbgrid}{First\\Last}}
+\sample{\row{T}{\picturecontent{2.4\nbgrid}}}
+\sample{\row{T}{\picturecontent{3.15\nbgrid}}}
+\sample{\row{c}{First\\Middle\\Last}}
+\sample{\row{b}{First\\Middle\\Last}}
+\sample{\naturalmini{} Beside}
+\sample{\leavevmode\naturalmini{} Beside}
+\sample{Before \naturalmini{} Beside}
+\end{document}

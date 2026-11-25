@@ -1,0 +1,28 @@
+\newcommand{\nbeamer@installedfonts}{%
+  \IfFontExistsTF{LXGWWenKai-Light.ttf}
+    {\IfFontExistsTF{LXGWWenKai-Medium.ttf}{\nbeamer@wenkai{}}{\nbeamer@fontset@fandol}}
+    {\nbeamer@fontset@fandol}}
+\newcommand{\nbeamer@fontset@auto}{%
+  \IfFileExists{fonts/LXGWWenKai-Light.ttf}
+    {\IfFileExists{fonts/LXGWWenKai-Medium.ttf}
+      {\nbeamer@wenkai{Path=fonts/,}}{\nbeamer@installedfonts}}
+    {\nbeamer@installedfonts}}
+\newcommand{\nbeamer@wenkai}[1]{%
+  \ClassInfo{nbeamer}{Using WenKai Light and Medium}%
+  \setsansfont{LXGWWenKai-Light.ttf}[#1BoldFont=LXGWWenKai-Medium.ttf,AutoFakeSlant=.18]%
+  \setCJKsansfont{LXGWWenKai-Light.ttf}[#1BoldFont=LXGWWenKai-Medium.ttf]%
+  \xeCJKsetup{AutoFallBack=true}%
+  \setCJKfallbackfamilyfont{\CJKsfdefault}[BoldFont=FandolHei-Bold.otf]{FandolHei-Regular.otf}%
+  \nbeamer@secondaryfonts}
+\newcommand{\nbeamer@fontset@fandol}{%
+  \ClassInfo{nbeamer}{Using Latin Modern Sans and Fandol Hei}%
+  \setsansfont{lmsans10-regular.otf}[BoldFont=lmsans10-bold.otf,
+    ItalicFont=lmsans10-oblique.otf,BoldItalicFont=lmsans10-boldoblique.otf]%
+  \setCJKsansfont{FandolHei-Regular.otf}[BoldFont=FandolHei-Bold.otf]%
+  \nbeamer@secondaryfonts}
+\newcommand{\nbeamer@secondaryfonts}{%
+  \setCJKmainfont{FandolSong-Regular.otf}[BoldFont=FandolSong-Bold.otf]%
+  \setCJKmonofont{FandolFang-Regular.otf}}
+\newcommand{\nbeamer@fontset@custom}{\ClassInfo{nbeamer}{Using document font settings}}
+\csname nbeamer@fontset@\nbeamer@fontset\endcsname
+\endinput

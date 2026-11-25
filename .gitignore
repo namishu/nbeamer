@@ -1,0 +1,16 @@
+/.build/
+/fonts/*.ttf
+.DS_Store
+__pycache__/
+
+/docs/**/*.aux
+/docs/**/*.fdb_latexmk
+/docs/**/*.fls
+/docs/**/*.log
+/docs/**/*.nav
+/docs/**/*.out
+/docs/**/*.snm
+/docs/**/*.toc
+/docs/**/*.vrb
+/docs/**/*.xdv
+/docs/**/*.synctex.gz

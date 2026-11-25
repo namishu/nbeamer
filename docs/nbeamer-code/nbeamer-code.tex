@@ -1,0 +1,88 @@
+\documentclass{nbeamer}
+
+\usepackage{nbeamer-code}
+\title{nbeamer-code 使用手册}
+\subtitle{代码排版}
+\author{XIAN}
+\institute{纳米树研究室 Namishu Research Lab}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \title{目录}
+  \usebeamertemplate{contents page}
+\end{frame}
+
+\section{使用}
+\begin{frame}[fragile]{命令介绍}
+行内引用用 \incode{\incode}，独立代码块用 \incode{ncode} 环境。在导言区加载 \incode{\usepackage{nbeamer-code}}，给展示代码的页面加上 \incode{[fragile]}。
+\begin{ncode}[escapeinside={(*@}{@*)}]
+\begin{frame}[fragile]{计算中点}
+调用 \incode{midpoint(a, b)} 可以得到两个数的中点。
+\begin{ncode}
+def midpoint(a, b):
+    return (a + b) / 2
+(*@\incode{\end{ncode}}@*)
+(*@\incode{\end{frame}}@*)
+\end{ncode}
+函数名随句子排在行内，函数定义单独成块。
+\end{frame}
+
+\begin{frame}[fragile]{行内代码}
+要在正文中写出一条 LaTeX 命令，把它放进 \incode{\incode{...}}：
+\begin{ncode}
+\incode{\vspace{\nbgrid}}
+\end{ncode}
+用 \incode{\vspace{\nbgrid}} 在段间增加一格留白。
+
+反斜杠和花括号都会原样显示。要引用单独的左花括号，可以用分隔符写成 \incode+\incode|{|+。
+\end{frame}
+
+\begin{frame}[fragile]{代码块}
+\begin{columns}
+\begin{column}{11\nbgrid}
+\textbf{效果}
+\begin{ncode}[language=Python]
+def midpoint(a, b):
+    total = a + b
+    return total / 2
+\end{ncode}
+\end{column}%
+\hspace{2\nbgrid}%
+\begin{column}{15\nbgrid}
+\textbf{源码}
+\begin{ncode}[escapeinside={(*@}{@*)}]
+\begin{ncode}[language=Python]
+def midpoint(a, b):
+    total = a + b
+    return total / 2
+(*@\incode{\end{ncode}}@*)
+\end{ncode}
+按原有缩进写入代码。可选参数 \incode{language=Python} 启用语法高亮。左栏的 \incode{def} 和 \incode{return} 因此显示为粗体。
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{排版}
+\begin{frame}[fragile]{自动换行}
+\begin{columns}
+\begin{column}{13\nbgrid}
+\begin{ncode}[language=Python]
+def area(width, height, scale):
+    return width * height * scale * scale
+\end{ncode}
+\end{column}%
+\hspace{2\nbgrid}%
+\begin{column}{13\nbgrid}
+左栏的 \incode{return} 语句在源码中只有一行。由于这行代码超过栏宽，\incode{ncode} 会自动换行。
+
+源码中无需手动断行。排版后，相邻两行的基线仍相距一格。
+\end{column}
+\end{columns}
+\end{frame}
+
+\end{document}

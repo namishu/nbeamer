@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Development commands for an nbeamer checkout."""
+import argparse
+from pathlib import Path
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parent
+TOOLS = ROOT / "tools"
+DOCUMENTS = ("nbeamer", "nbeamer-code", "nbeamer-images", "design")
+
+
+def check(pdf):
+    subprocess.run([sys.executable, TOOLS / "check_bounds.py", "--strict", pdf], check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("test", help="Run the regression suite")
+    docs = commands.add_parser("docs", help="Build and check the manuals and design document")
+    docs.add_argument("name", nargs="?", choices=DOCUMENTS, help="Build only this document")
+    bounds = commands.add_parser("check", help="Fail if PDF body content overflows")
+    bounds.add_argument("pdf", type=Path)
+    package = commands.add_parser("package", help="Build local release assets in .build/dist")
+    package.add_argument("--repo", default="", help="GitHub owner/repo embedded in the installer")
+    args = parser.parse_args()
+
+    if args.command == "test":
+        subprocess.run([sys.executable, TOOLS / "test.py"], cwd=ROOT, check=True)
+    elif args.command == "package":
+        subprocess.run([sys.executable, TOOLS / "release.py", "--repo", args.repo], cwd=ROOT, check=True)
+    elif args.command == "check":
+        check(args.pdf)
+    else:
+        for name in (args.name,) if args.name else DOCUMENTS:
+            output = ROOT / ".build/docs" / name
+            output.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["latexmk", "-xelatex", "-interaction=nonstopmode", "-halt-on-error",
+                            f"-outdir={output}", f"docs/{name}/{name}.tex"], cwd=ROOT, check=True)
+            check(output / f"{name}.pdf")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except subprocess.CalledProcessError as error:
+        sys.exit(error.returncode)
+    except OSError as error:
+        sys.exit(f"dev: {error}")

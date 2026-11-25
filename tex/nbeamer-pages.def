@@ -1,0 +1,95 @@
+\newcommand{\nbeamer@coverfield}[2][]{%
+  {\usebeamerfont{#2}\usebeamercolor[fg]{#2}%
+   \nbeamer@singleline{Cover field '#2'}{#1\csname insert#2\endcsname}}}
+% Both the field and its guide use the same top and bottom grid rows.
+\newcommand{\nbeamer@coverrow}[5]{%
+  \ifnbeamer@boxes
+    \draw[nbeamer region] (0,#1) rectangle (\nbeamer@specialwidth,-#2\nbeamer@gridunit);
+  \fi
+  \node[#3] at (#4,{-(#1+#2)*\nbeamer@gridunit/2}) {#5};}
+\setbeamertemplate{title page}{%
+  \nbeamer@beginspecialpage%
+  \begin{tikzpicture}[remember picture,overlay]
+    \begin{scope}[nbeamer special page,every node/.style={inner sep=0pt,outer sep=0pt},
+                  cover left/.style={anchor=west,text width=\nbeamer@specialwidth,align=left}]
+      \nbeamer@coverrow{3}{7}{cover left,font=\usebeamerfont{title}}{0pt}{\usebeamercolor[fg]{title}\nbeamer@singleline{Cover title}{\inserttitle}}
+      \nbeamer@coverrow{7}{9}{cover left}{0pt}{\nbeamer@coverfield{subtitle}}
+      \nbeamer@coverrow{11}{13}{cover left}{0pt}{\nbeamer@coverfield{author}}
+      \ifx\insertinstitute\@empty\else
+        \nbeamer@coverrow{13}{14}{cover left}{0pt}{\nbeamer@coverfield{institute}}
+      \fi
+      \ifx\insertdate\@empty\else
+        \linewidth=\nbeamer@specialwidth\relax
+        \nbeamer@coverrow{15}{16}{anchor=east}{\nbeamer@specialwidth}{\nbeamer@coverfield{date}}
+      \fi
+    \end{scope}
+  \end{tikzpicture}}
+
+\def\nbeamer@pages@headingrow{4}
+\def\nbeamer@pages@rowheight{2}
+\newcount\nbeamer@tocentry
+\newcommand{\nbeamer@tocrow}[1]{%
+    \begin{tikzpicture}[remember picture,overlay]
+      \begin{scope}[nbeamer special page]
+        \coordinate (entry) at (\nbeamer@toclistleft,{\nbeamer@pages@headingrow+(\the\nbeamer@tocentry-.5)*\nbeamer@pages@rowheight});
+        \node[anchor=center,inner sep=0pt,outer sep=0pt] at ([xshift=.5\nbeamer@gridunit]entry) {\usebeamertemplate{itemize item}};
+        \node[anchor=west,inner sep=0pt,outer sep=0pt,font=\usebeamerfont{section in toc}]
+          at ([xshift=\nbeamer@gridunit]entry) {%
+            \linewidth=\dimexpr\nbeamer@specialwidth-\nbgrid*(\nbeamer@toclistleft+1)\relax
+            \nbeamer@singleline{Contents entry}{#1}};
+      \end{scope}
+    \end{tikzpicture}}
+\newcommand{\nbeamer@nexttocrow}[1]{%
+  \advance\nbeamer@tocentry by 1\relax
+  \ifnum\nbeamer@tocentry>\nbeamer@tocslots\relax
+    \ifnum\nbeamer@tocentry=\numexpr\nbeamer@tocslots+1\relax
+      \ClassWarningNoLine{nbeamer}{Contents page shows only the first \nbeamer@tocslots\space entries.
+        Additional entries are omitted}%
+    \fi
+  \else
+    #1%
+  \fi}
+\newcommand{\nbeamer@tocsections}{%
+  \setbeamertemplate{section in toc}{\nbeamer@tocrow{\inserttocsection}}%
+  \nbeamer@limittocentries
+  \tableofcontents[hideallsubsections]}
+\setbeamertemplate{contents page}{%
+  \begingroup
+  \def\nbeamer@tocheadingwidth{9}\def\nbeamer@tocslots{5}\def\nbeamer@toclistleft{11}%
+  \nbeamer@beginspecialpage%
+  \begin{tikzpicture}[remember picture,overlay]
+    \begin{scope}[nbeamer special page]
+      \ifnbeamer@boxes
+        \draw[nbeamer region] (0,\nbeamer@pages@headingrow) rectangle (\nbeamer@tocheadingwidth,{\nbeamer@pages@headingrow+\nbeamer@pages@rowheight});
+        \coordinate (list right) at (\nbeamer@specialwidth,0pt);
+        \coordinate (list bottom) at (0,{\nbeamer@pages@headingrow+\nbeamer@tocslots*\nbeamer@pages@rowheight});
+        \draw[nbeamer region] (\nbeamer@toclistleft,\nbeamer@pages@headingrow) rectangle (list right |- list bottom);
+        \foreach \nbeamer@tocslot in {2,...,\nbeamer@tocslots}{
+          \coordinate (row start) at (\nbeamer@toclistleft,{\nbeamer@pages@headingrow+(\nbeamer@tocslot-1)*\nbeamer@pages@rowheight});
+          \draw[nbeamer region] (row start) -- (list right |- row start);
+        }
+      \fi
+      \node[anchor=west,inner sep=0pt,outer sep=0pt,font=\usebeamerfont{frametitle}]
+        at (0,{\nbeamer@pages@headingrow+\nbeamer@pages@rowheight/2}) {%
+            \linewidth=\nbeamer@tocheadingwidth\nbgrid\relax
+            \nbeamer@singleline{Contents heading}{\inserttitle}};
+    \end{scope}
+  \end{tikzpicture}%
+  \nbeamer@tocentry=0\relax
+  \nbeamer@tocsections
+  \endgroup}
+\setbeamertemplate{section page}{%
+  \nbeamer@beginspecialpage%
+  \begin{tikzpicture}[remember picture,overlay]
+    \begin{scope}[nbeamer special page]
+      \coordinate (section top) at (0,\nbeamer@pages@headingrow);
+      \coordinate (section bottom) at (0,{\nbeamer@pages@headingrow+\nbeamer@pages@rowheight});
+      \ifnbeamer@boxes
+        \draw[nbeamer region] (section top) rectangle ([xshift=\nbeamer@specialwidth]section bottom);
+      \fi
+      \path (section top) -- (section bottom)
+        node[midway,anchor=west,text width=\nbeamer@specialwidth,align=left,
+             inner sep=0pt,outer sep=0pt,font=\usebeamerfont{frametitle}] {\nbeamer@singleline{Section heading}{\insertsection}};
+    \end{scope}
+  \end{tikzpicture}}
+\endinput

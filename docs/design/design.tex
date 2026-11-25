@@ -1,0 +1,188 @@
+\documentclass{nbeamer}
+\usepackage{nbeamer-code}
+\nbsetup{grid=true, boxes=true}
+\title{nbeamer 设计说明}
+\subtitle{网格布局}
+\author{XIAN}
+\institute{纳米树研究室 Namishu Research Lab}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \title{目录}
+  \usebeamertemplate{contents page}
+\end{frame}
+
+\section{版面}
+\begin{frame}[fragile]{网格}
+  整张画布横向 32 格，纵向 18 格。每格都是正方形，边长等于页宽的 $1/32$。在文稿中，用 \incode{\nbgrid} 表示这个长度。
+
+  {\centering
+    \begin{tikzpicture}[x=.5cm,y=.5cm]
+      \draw[step=.5cm,gray] (0,0) grid (8,2);
+      \draw[thick] (3,0) rectangle (4,1);
+      \draw[<->] (3,-.45) -- node[below]{一格} (4,-.45);
+    \end{tikzpicture}\par}
+
+  数网格可以读出边距和区域宽度。文字另有基线，同一行的字符沿基线排列。
+\end{frame}
+
+\begin{frame}{页边距}
+  从页面左边缘数到辅助框，有 2 格留白；右边也留出 2 格。页面横向共 32 格，中间可用的宽度是 28 格。
+
+  标题区和内容区共用左右边界。调整任意一侧的页边距，两个区域在该侧的边线都会随之移动。
+  \vfill
+  内容区底边 \hfill 距页底 2 格
+\end{frame}
+
+\section{页面}
+\begin{frame}{封面}
+  \begin{columns}
+    \begin{column}{13\nbgrid}
+      \setlength{\lineskip}{0pt}% Align the tall picture with the column top.
+      \begin{figure}
+        \begin{tikzpicture}[
+          x={\dimexpr(\linewidth-\pgflinewidth)/32\relax},
+          y={\dimexpr(\pgflinewidth-\linewidth)/32\relax},
+          every node/.style={inner sep=1pt,font=\tiny}]
+          \draw (0,0) rectangle (32,18);
+          \draw[gray] (3,3) rectangle (29,7) (3,7) rectangle (29,9)
+            (3,11) rectangle (29,13) (3,13) rectangle (29,14)
+            (3,15) rectangle (29,16);
+          \node[anchor=west] at (3,5) {nbeamer 设计说明};
+          \node[anchor=west] at (3,8) {网格布局};
+          \node[anchor=west] at (3,12) {作者};
+          \node[anchor=west] at (3,13.5) {机构};
+          \node[anchor=east] at (29,15.5) {日期};
+        \end{tikzpicture}
+      \end{figure}
+    \end{column}
+    \hfill
+    \begin{column}{13\nbgrid}
+      \justifying
+      封面的左右边界各比普通页向内收 1 格，默认宽 26 格。
+
+      标题和副标题共用左边线。署名放在下方，作者和机构各占一行；日期沿容器右边线对齐。封面标题和正文页标题均限一行，超宽时截断并在编译日志中给出警告。
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{导航页}
+  \begin{columns}
+    \begin{column}{13\nbgrid}
+      \justifying
+      \textbf{目录}
+
+      左侧放页名，右侧从上到下排列章节。每项占 2 格高，最多五项。本稿有三个分类，占前三个位置。
+    \end{column}
+    \hfill
+    \begin{column}{13\nbgrid}
+      \justifying
+      \textbf{章节页}
+
+      需要单独引出一章时，可在同样宽的容器中只放章节名。它与目录页名共用左边线和标题行的位置。
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{正文页}
+  \begin{columns}
+    \begin{column}{13\nbgrid}
+      \setlength{\lineskip}{0pt}
+      \begin{figure}
+        \begin{tikzpicture}[
+          x={\dimexpr(\linewidth-\pgflinewidth)/32\relax},
+          y={\dimexpr(\pgflinewidth-\linewidth)/32\relax},
+          every node/.style={font=\scriptsize}]
+          \draw (0,0) rectangle (32,18);
+          \draw (2,1) rectangle (30,3);
+          \node[font=\tiny] at (16,2) {标题区};
+          \draw[fill=black!6] (2,4) rectangle (30,16);
+          \node at (16,10) {内容区};
+        \end{tikzpicture}
+      \end{figure}
+      \justifying
+      \textbf{有标题页。}标题区位于上方，内容区从距页顶 4 格处开始，距页底留 2 格。
+    \end{column}
+    \hfill
+    \begin{column}{13\nbgrid}
+      \setlength{\lineskip}{0pt}
+      \begin{figure}
+        \begin{tikzpicture}[
+          x={\dimexpr(\linewidth-\pgflinewidth)/32\relax},
+          y={\dimexpr(\pgflinewidth-\linewidth)/32\relax},
+          every node/.style={font=\scriptsize}]
+          \draw (0,0) rectangle (32,18);
+          \draw[fill=black!6] (2,2) rectangle (30,16);
+          \node at (16,10) {内容区};
+        \end{tikzpicture}
+      \end{figure}
+      \justifying
+      \textbf{无标题页。}内容区从距页顶 2 格处开始，比左图多出 2 格高度。左右边界和底边与左图相同。
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{内容}
+\begin{frame}[fragile]{分栏}
+  \begin{columns}
+    \begin{column}{13\nbgrid}
+      \justifying
+      左栏从普通文字开始。首行基线位于栏顶下方 $\tfrac34$ 格，汉字和字母沿这条线排列。
+
+      本页两栏各宽 \incode{13\nbgrid}，中间留 2 格。嵌套分栏时，每格仍是页宽的 $1/32$。
+    \end{column}
+    \hfill
+    \begin{column}{13\nbgrid}
+      \begin{table}
+        \begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}l}
+          \toprule 栏首内容 & 对齐参照 \\
+          \midrule 正文 & 首行基线 \\
+          图片 & 图像上边缘 \\
+          表格 & 表体上边缘 \\ \bottomrule
+        \end{tabular*}
+        \caption{表格撑满右栏，顶线贴住栏顶。}
+      \end{table}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{段落}
+  第一行和下一行属于同一段。\\
+  从上一条基线量到这一条，距离是 \textbf{1 格}。
+
+  这里开始第二段。上一段末行到这一段首行，基线相距 \textbf{2 格}。多出的一格标明段落边界。
+
+  普通字号的正文沿用这个节奏。\emph{强调}和\textbf{粗体}让读者在同一行里辨认重点。
+\end{frame}
+
+\begin{frame}{环境}
+  \begin{columns}
+    \begin{column}{14\nbgrid}
+      \begin{block}{内容块}
+        标题和首句同行。
+
+        块内另起一段，两条普通文字基线相距 2 格。
+      \end{block}
+      这里接回正文。列表、块或证明结束后，到下一段普通正文也留出同样的段距。
+    \end{column}
+    \hfill
+    \begin{column}{12\nbgrid}
+      \begin{figure}
+        \includegraphics[width=\linewidth]{../nbeamer/figures/mushroom-shelter.png}
+        \caption{题注随栏宽换行。}
+      \end{figure}
+    \end{column}
+  \end{columns}
+  图表和高公式按实际高度展开。后续内容可以从两条网格线之间开始。
+\end{frame}
+\begin{frame}{图片网格}
+  图片等宽排列。相邻两行之间留 1 格，四列布局的列间距为 1 格，其他多列布局的列间距为 2 格。扣除间距后，剩余宽度由各列均分，图片宽度可以是小数格。
+
+  图片网格题注沿排字方向只占一行。超出单元格可用长度时，保留开头并截断末尾，编译继续，日志提示对应题注。普通图表的题注随栏宽换行。
+\end{frame}
+\end{document}

@@ -1,0 +1,126 @@
+\documentclass{nbeamer}
+
+\usepackage{nbeamer-images}
+\usepackage{nbeamer-code}
+\title{nbeamer-images 使用手册}
+\subtitle{图片排列}
+\author{XIAN}
+\institute{纳米树研究室 Namishu Research Lab}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \title{目录}
+  \usebeamertemplate{contents page}
+\end{frame}
+
+\section{使用}
+\begin{frame}[fragile]{命令介绍}
+用 \incode{nimagegrid} 环境排列图片，用 \incode{\nimage} 命令逐张放图。在导言区加载 \incode{\usepackage{nbeamer-images}}，在 \incode{frame} 中写：
+\begin{ncode}
+\begin{nimagegrid}[rows=1,columns=2]
+  \nimage[刺猬]{figures/hedgehog.jpg}
+  \nimage{figures/squirrel.jpg}
+\end{nimagegrid}
+\end{ncode}
+\incode{rows} 和 \incode{columns} 必填。这里排成一行两列：左图是刺猬，右图是松鼠。花括号中写文件路径，方括号中写题注；松鼠这张图省略了题注。
+\end{frame}
+
+\begin{frame}[fragile]{高度控制}
+\incode{height} 是 \incode{nimagegrid} 的可选参数，用于指定每个图片容器的高度。取值为正整数，单位是网格。
+
+省略时，图组使用整页正文区高度，应从正文区顶部开始放置。竖向容器的高度下限是自身宽度，上限是默认高度，两端都可取。横向或正方形容器保持原高。
+
+在默认的带标题页上，一行三列可取 8 至 12 格，一行四列可取 7 至 12 格。
+
+\begin{ncode}
+\begin{nimagegrid}[rows=1,columns=4,height=8]
+\end{ncode}
+这里的 \incode{height=8} 将每个容器设为 8 格高，效果见下一页。
+\end{frame}
+
+\begin{frame}{rows=1, columns=4, height=8}
+  \begin{nimagegrid}[rows=1,columns=4,height=8]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+    \nimage[兔子]{figures/rabbit.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\section{图例}
+\begin{frame}{rows=1, columns=1}
+  \begin{nimagegrid}[rows=1,columns=1]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=1, columns=2}
+  \begin{nimagegrid}[rows=1,columns=2]
+    \nimage[背着苹果的刺猬]{figures/hedgehog.jpg}
+    \nimage[爬上树干的松鼠]{figures/squirrel.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=1, columns=3}
+  \begin{nimagegrid}[rows=1,columns=3]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=1, columns=4}
+  \begin{nimagegrid}[rows=1,columns=4]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+    \nimage[兔子]{figures/rabbit.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=2, columns=1}
+  \begin{nimagegrid}[rows=2,columns=1]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=2, columns=2}
+  \begin{nimagegrid}[rows=2,columns=2]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+    \nimage[兔子]{figures/rabbit.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=2, columns=3}
+  \begin{nimagegrid}[rows=2,columns=3]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+    \nimage[兔子]{figures/rabbit.jpg}
+    \nimage[狐狸]{figures/fox.jpg}
+    \nimage[小鼠]{figures/mouse.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\begin{frame}{rows=2, columns=4}
+  \begin{nimagegrid}[rows=2,columns=4]
+    \nimage[刺猬]{figures/hedgehog.jpg}
+    \nimage[松鼠]{figures/squirrel.jpg}
+    \nimage[水獭]{figures/otter.jpg}
+    \nimage[兔子]{figures/rabbit.jpg}
+    \nimage[狐狸]{figures/fox.jpg}
+    \nimage[小鼠]{figures/mouse.jpg}
+    \nimage[鹪鹩]{figures/wren.jpg}
+    \nimage[小鸭]{figures/ducklings.jpg}
+  \end{nimagegrid}
+\end{frame}
+
+\end{document}

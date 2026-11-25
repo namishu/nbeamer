@@ -1,0 +1,16 @@
+\documentclass[fontset=fandol]{nbeamer}
+\newcommand{\boundary}[2]{%
+  \begin{frame}{Spacing}
+    #1#2\par Outside
+  \end{frame}}
+\newcommand{\bothpositions}[1]{\boundary{}{#1}\boundary{Intro\par}{#1}}
+\begin{document}
+\bothpositions{\begin{itemize}\item Inside\end{itemize}}
+\bothpositions{\begin{enumerate}\item Inside\end{enumerate}}
+\bothpositions{\begin{block}{Title}First\par Inside\end{block}}
+\bothpositions{\begin{alertblock}{Title}First\par Inside\end{alertblock}}
+\bothpositions{\begin{exampleblock}{Title}First\par Inside\end{exampleblock}}
+\bothpositions{\begin{block}{}First\par Inside\end{block}}
+\bothpositions{\begin{proof}[Proof]First\par Inside\end{proof}}
+\bothpositions{\begin{itemize}\item Outer\begin{itemize}\item Inner\end{itemize}\item Inside\end{itemize}}
+\end{document}

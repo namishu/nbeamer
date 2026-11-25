@@ -1,0 +1,32 @@
+\documentclass[fontset=fandol]{nbeamer}
+\usepackage{nbeamer-code}
+\begin{document}
+\begin{frame}[fragile]{Code}
+Before \incode{\alpha{X}} \incode|{| after.
+\begin{ncode}
+First
+
+Last
+\end{ncode}
+After
+\end{frame}
+\begin{frame}[fragile]{Columns}
+\begin{columns}
+\begin{column}{10\nbgrid}
+Marker
+\end{column}
+\begin{column}{6\nbgrid}
+\begin{ncode}
+First word word word word Last
+\end{ncode}
+After
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}[fragile]{Code}
+\begin{ncode}[language=Python,basicstyle={\ttfamily\footnotesize\color{red}}]
+def twice(x):
+    return 2 * x
+\end{ncode}
+\end{frame}
+\end{document}

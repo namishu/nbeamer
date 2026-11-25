@@ -1,0 +1,11 @@
+\documentclass[fontset=fandol]{nbeamer}
+% Put a colored suffix immediately beyond the field so clipping can be checked in the rendered page.
+\newcommand{\sample}{\makebox[\linewidth][l]{Start WWWW}\textcolor{red}{End}}
+\begin{document}
+\title{\sample}
+\begin{frame}\titlepage\end{frame}
+\begin{frame}{\sample}Body\end{frame}
+\title{Short}
+\begin{frame}\titlepage\end{frame}
+\begin{frame}{Short}{HiddenSubtitle}Body\framesubtitle{AlsoHidden}\end{frame}
+\end{document}

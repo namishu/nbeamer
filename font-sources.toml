@@ -1,0 +1,7 @@
+[wenkai]
+version = "1.530"
+base_url = "https://github.com/lxgw/LxgwWenKai/releases/download/v1.530/"
+
+[wenkai.files]
+"LXGWWenKai-Light.ttf" = "9a50e3f0f51fad60d68152d5191bce1a495bfc4b9ceb1cee24833835511d1dca"
+"LXGWWenKai-Medium.ttf" = "f4b8a34d1f838fe411540cb7c97b1c384ac9738a876c4104500bc42508b2312a"

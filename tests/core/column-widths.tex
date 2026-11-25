@@ -1,0 +1,23 @@
+\documentclass[fontset=fandol]{nbeamer}
+\setbeamersize{text margin left=5mm,text margin right=20mm}
+\newcommand{\checkwidth}[1]{%
+  \ifdim\linewidth=\dimexpr#1\relax\else\errmessage{Unexpected column width}\fi}
+\begin{document}
+\begin{frame}
+  \begin{columns}
+    \begin{column}{14\nbgrid}
+      \ifnum\gluestretchorder\rightskip>0\relax\else\errmessage{Expected ragged right column}\fi
+      \checkwidth{(\paperwidth/32)*14}
+      \begin{columns}
+        \begin{column}{.5\linewidth}\checkwidth{(\paperwidth/32)*7}A\end{column}
+        \begin{column}{3\nbgrid}\checkwidth{(\paperwidth/32)*3}B\end{column}
+      \end{columns}
+    \end{column}
+    \begin{column}{3cm}
+      \justifying
+      \ifnum\gluestretchorder\rightskip=0\relax\else\errmessage{Expected justified column}\fi
+      \checkwidth{3cm}C
+    \end{column}
+  \end{columns}
+\end{frame}
+\end{document}

@@ -1,0 +1,228 @@
+#!/usr/bin/env python3
+"""Install nbeamer into a personal TeX tree (Python 3.11+)."""
+import argparse
+import errno
+import hashlib
+import os
+import re
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+from http.client import HTTPException
+import tempfile
+import tomllib
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+from zipfile import ZipFile
+
+DEFAULT_REPO = ""
+DOC = Path("doc/latex/nbeamer")
+FONT = Path("fonts/truetype/nbeamer")
+TEX = Path("tex/latex/nbeamer")
+CODE_FILES = ("nbeamer.cls", "nbeamer-fonts.def", "nbeamer-pages.def", "nbeamer-compat.def", "nbeamer-images.sty", "nbeamer-code.sty")
+
+
+PACKAGE_FILES = [TEX / n for n in CODE_FILES] + [DOC / n for n in ("README.md", "font-sources.toml", "OFL.txt", "LICENSE")]
+TEX_REQUIREMENTS = DOC / "texlive-requirements.txt"
+WENKAI_FILES = [FONT / f"LXGWWenKai-{weight}.ttf" for weight in ("Light", "Medium")]
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def download(url, dest):
+    request = Request(url, headers={"User-Agent": "nbeamer"})
+    with urlopen(request, timeout=90) as source, dest.open("wb") as out:
+        shutil.copyfileobj(source, out)
+
+
+def verified(path, expected):
+    if digest(path) != expected:
+        raise ValueError(f"Checksum mismatch: {path.name}")
+
+
+def texmf_root(args):
+    root = args.texmfhome or Path(subprocess.check_output(
+        ["kpsewhich", "-var-value=TEXMFHOME"], text=True).strip())
+    return root.expanduser().resolve()
+
+
+def uninstall(args):
+    root = texmf_root(args)
+    if not root.exists():
+        print(f"No installation in {root}")
+        return
+    files = WENKAI_FILES if args.fonts_only else WENKAI_FILES + PACKAGE_FILES + [TEX_REQUIREMENTS]
+    directories = {file.parent for file in files}
+    lock = root / ".nbeamer-install.lock"
+    lock.mkdir()
+    try:
+        for directory in directories:
+            if (root / directory).resolve() != root / directory:
+                raise ValueError(f"Refusing to remove files through a redirected directory: {directory}")
+        for file in files:
+            (root / file).unlink(missing_ok=True)
+        for directory in directories:
+            try:
+                (root / directory).rmdir()
+            except OSError as error:
+                if error.errno not in (errno.ENOENT, errno.ENOTEMPTY, errno.EEXIST):
+                    raise
+    finally:
+        lock.rmdir()
+    print(f"Removed {'wenkai fonts' if args.fonts_only else 'nbeamer'} from {root}")
+
+
+def install_tex_dependencies(manifest):
+    packages = [line.partition("#")[0].strip() for line in manifest.read_text().splitlines()]
+    packages = [name for name in packages if name]
+    if not packages or not all(re.fullmatch(r"[a-z0-9][a-z0-9.-]*", name) for name in packages):
+        raise ValueError("Invalid TeX Live package list")
+    if not shutil.which("tlmgr"):
+        raise ValueError("Install TeX Live with tlmgr and add its bin directory to PATH first.")
+    installed = subprocess.check_output(
+        ["tlmgr", "info", "--only-installed", "--data", "name"], text=True
+    ).splitlines()
+    missing = [name for name in packages if name not in installed]
+    if missing:
+        subprocess.run(["tlmgr", "install", *missing], check=True)
+
+
+def publish(root, stage, work, files):
+    replaced = []
+    try:
+        for file in files:
+            dest = root / file
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            backup = None
+            if dest.exists():
+                backup = work / "previous" / file
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(dest, backup)
+            os.replace(stage / file, dest)
+            replaced.append((dest, backup))
+    except OSError:
+        for dest, backup in reversed(replaced):
+            if backup is None:
+                dest.unlink()
+            else:
+                os.replace(backup, dest)
+        raise
+
+
+def warn_fonts(error):
+    print(f"nbeamer: warning: WenKai setup failed: {error}. "
+          "The template can use Fandol. Run 'nbeamer install' to retry.", file=sys.stderr)
+
+
+def prepare_fonts(root, stage):
+    files = []
+    profile = tomllib.loads((stage / DOC / "font-sources.toml").read_text())["wenkai"]
+    for name, expected in profile["files"].items():
+        if Path(name).name != name or not name.endswith(".ttf"):
+            raise ValueError(f"Invalid font name: {name}")
+        file = FONT / name
+        if (root / file).is_file() and digest(root / file) == expected:
+            continue
+        target = stage / file
+        target.parent.mkdir(parents=True, exist_ok=True)
+        download(profile["base_url"] + name, target)
+        verified(target, expected)
+        files.append(file)
+    return files
+
+
+def install(args):
+    if args.with_deps and not shutil.which("kpsewhich"):
+        raise ValueError("Installation failed: install TeX Live and add its bin directory to PATH first.")
+    root = texmf_root(args)
+    root.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=root) as tmp:
+        work = Path(tmp)
+        assets = args.from_dir
+        if assets is None:
+            if not args.repo:
+                raise ValueError("Supply --repo OWNER/REPOSITORY or --from-dir DIST")
+            assets = work
+            release = "download/" + quote(args.version, safe="") if args.version else "latest/download"
+            base = f"https://github.com/{args.repo}/releases/{release}"
+            for name in ("nbeamer.tds.zip", "nbeamer.sha256"):
+                download(f"{base}/{name}", work / name)
+        archive = assets / "nbeamer.tds.zip"
+        verified(archive, (assets / "nbeamer.sha256").read_text().strip())
+        stage = work / "stage"
+        files = PACKAGE_FILES.copy()
+        with ZipFile(archive) as bundle:
+            if (DOC / "LICENSE").as_posix() not in bundle.namelist():
+                files.remove(DOC / "LICENSE")  # Releases predating the project license.
+            if TEX_REQUIREMENTS.as_posix() in bundle.namelist():
+                files.append(TEX_REQUIREMENTS)
+            elif args.with_deps:
+                raise ValueError("This release has no TeX Live dependency list. Use --no-deps if you have supplied the dependencies.")
+            for file in files:
+                target = stage / file
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(bundle.read(file.as_posix()))
+        if args.with_deps:
+            try:
+                install_tex_dependencies(stage / TEX_REQUIREMENTS)
+            except (ValueError, OSError, subprocess.CalledProcessError) as error:
+                raise ValueError(f"Installation failed during dependency setup: {error}") from error
+        lock = root / ".nbeamer-install.lock"
+        lock.mkdir()
+        try:
+            fonts_ready = False
+            font_files = None
+            if args.fonts:
+                try:
+                    font_files = prepare_fonts(root, stage)
+                except (OSError, HTTPException, ValueError, KeyError) as error:
+                    warn_fonts(error)
+            publish(root, stage, work, files)
+            if font_files is not None:
+                try:
+                    publish(root, stage, work, font_files)
+                    fonts_ready = True
+                except OSError as error:
+                    warn_fonts(error)
+        finally:
+            lock.rmdir()
+    print(f"Installed nbeamer in {root}\nClass and extensions: {root / TEX}\nDocumentation: {root / DOC}")
+    if fonts_ready:
+        print(f"WenKai fonts: {root / FONT}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    actions = parser.add_subparsers(dest="command", required=True)
+    for name, flag in [("install", "--with-fonts"), ("update", "--fonts")]:
+        action = actions.add_parser(name)
+        fonts = action.add_mutually_exclusive_group()
+        fonts.add_argument(flag, dest="fonts", action="store_true", help="Check and install WenKai fonts")
+        fonts.add_argument("--no-fonts", dest="fonts", action="store_false")
+        deps = action.add_mutually_exclusive_group()
+        deps.add_argument("--with-deps", action="store_true", help="Check and install missing TeX Live packages")
+        deps.add_argument("--no-deps", dest="with_deps", action="store_false")
+        action.set_defaults(fonts=name == "install", with_deps=name == "install")
+        action.add_argument("--repo", default=DEFAULT_REPO)
+        source = action.add_mutually_exclusive_group()
+        source.add_argument("--version", help="GitHub release tag (default: latest)")
+        source.add_argument("--from-dir", type=Path, help="Local release assets")
+        action.add_argument("--texmfhome", type=Path)
+    removal = actions.add_parser("uninstall")
+    removal.add_argument("--fonts-only", action="store_true", help="Remove only the wenkai font files")
+    removal.add_argument("--texmfhome", type=Path)
+    try:
+        args = parser.parse_args()
+        if args.command == "uninstall":
+            uninstall(args)
+        else:
+            install(args)
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        parser.exit(1, f"nbeamer: {error}\n")
+
+
+if __name__ == "__main__":
+    main()

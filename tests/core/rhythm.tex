@@ -1,0 +1,35 @@
+\documentclass[fontset=fandol]{nbeamer}
+\newcommand{\sampletext}{Alpha\\Beta\par Gamma}
+\newcommand{\listfirst}{\begin{itemize}\item Item\end{itemize}\sampletext}
+\newcommand{\blockfirst}{\begin{block}{Title}Item\end{block}\sampletext}
+\begin{document}
+\begin{frame}{Rhythm}
+  \listfirst
+\end{frame}
+\begin{frame}{Rhythm}
+  \begin{columns}
+    \begin{column}{.45\linewidth}\listfirst\end{column}
+    \begin{column}{.45\linewidth}\blockfirst\end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}{Rhythm}
+  \begin{minipage}[t]{\linewidth}\blockfirst\end{minipage}
+\end{frame}
+\begin{frame}{Rhythm}
+  \begin{columns}
+    \begin{column}{.45\linewidth}
+      \begin{minipage}[t]{\linewidth}\listfirst\end{minipage}
+    \end{column}
+    \begin{column}{.45\linewidth}
+      \begin{minipage}[t]{\linewidth}\blockfirst\end{minipage}
+    \end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}{Rhythm}
+  \begin{minipage}[t]{\linewidth}
+    \begin{columns}
+      \begin{column}{\linewidth}\blockfirst\end{column}
+    \end{columns}
+  \end{minipage}
+\end{frame}
+\end{document}

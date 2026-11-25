@@ -1,0 +1,233 @@
+\documentclass{nbeamer}
+\usepackage{nbeamer-code}
+
+\title{nbeamer 是一个极简风的 \LaTeX{} beamer class}
+\subtitle{nbeamer 使用手册}
+\author{XIAN}
+\institute{纳米树研究室 Namishu Research Lab}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \title{目录}
+  \usebeamertemplate{contents page}
+\end{frame}
+
+\section{开始}
+\begin{frame}[fragile]{最小示例}
+保存为 \incode{talk.tex}。正文页只显示主标题。使用 \incode{\framesubtitle} 会收到编译警告。
+\begin{ncode}
+\documentclass{nbeamer}
+\begin{document}
+\begin{frame}{第一页}
+  你好，nbeamer。
+\end{frame}%
+\end{document}
+\end{ncode}
+在同一目录运行 \incode{latexmk -xelatex talk.tex}，打开 \incode{talk.pdf}。
+\end{frame}
+
+\section{页面结构}
+\begin{frame}[fragile]{封面}
+本手册首页的五个字段写在导言区。\incode{\today} 显示年-月-日，也可在 \incode{\date{...}} 中自填日期。
+\begin{ncode}
+\title{nbeamer 是一个极简风的 \LaTeX{} beamer class}
+\subtitle{nbeamer 使用手册}
+\author{XIAN}
+\institute{纳米树研究室 Namishu Research Lab}
+\date{\today}
+\end{ncode}
+在正文中用一个 frame 放置封面：\incode{\begin{frame}\titlepage\end{frame}}。
+\end{frame}
+
+\begin{frame}[fragile]{目录}
+目录收集各个 \incode{\section} 的名称。在封面后插入目录，在各组正文前用这个命令命名章节。
+\begin{ncode}
+\begin{frame}
+  \title{目录}
+  \usebeamertemplate{contents page}
+\end{frame}%
+
+\section{正文元素}
+\end{ncode}
+\end{frame}
+
+\section{正文元素}
+
+\begin{frame}[fragile]{文字强调}
+\begin{table}
+  \begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}ll}
+    \toprule
+    来源 & 写法 & 效果 \\
+    \midrule
+    LaTeX   & \incode{\textbf{关键词}}       & \textbf{关键词} \\
+            & \incode{\emph{关键条件}}        & \emph{关键条件} \\
+    Beamer  & \incode{\alert{仅限首次提交}}   & \alert{仅限首次提交} \\
+    nbeamer & \incode{\nbemph{主要结论}}      & \nbemph{主要结论} \\
+            & \incode{\nbmute{数据来源}}      & \nbmute{数据来源} \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
+
+\incode{\alert} 是 Beamer 自带的提醒命令，nbeamer 将其样式设为砖红色粗体。
+\end{frame}
+
+\begin{frame}[fragile]{列表}
+\begin{columns}
+\begin{column}{13\nbgrid}
+\begin{itemize}
+  \item 无序条目
+  \begin{itemize}
+    \item 子项
+  \end{itemize}
+\end{itemize}
+\begin{ncode}
+\begin{itemize}
+  \item 无序条目
+  \begin{itemize}
+    \item 子项
+  \end{itemize}
+\end{itemize}
+\end{ncode}
+\end{column}
+\begin{column}{13\nbgrid}
+\begin{enumerate}
+  \item 第一项
+  \item 第二项
+\end{enumerate}
+\begin{ncode}
+\begin{enumerate}
+  \item 第一项
+  \item 第二项
+\end{enumerate}
+\end{ncode}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{内容块}
+\begin{block}{命题}
+两个偶数之和是偶数。
+\end{block}
+\begin{proof}[证明]
+两个加数都能被 2 整除，它们的和也能被 2 整除。
+\end{proof}
+\begin{ncode}
+\begin{block}{命题}
+  两个偶数之和是偶数。
+\end{block}
+\begin{proof}[证明]
+  两个加数都能被 2 整除，它们的和也能被 2 整除。
+\end{proof}
+\end{ncode}
+\end{frame}
+
+\begin{frame}[fragile]{公式}
+行内公式跟随文字，例如 $a^2+b^2=c^2$。
+\begin{ncode}
+$a^2+b^2=c^2$
+\end{ncode}
+
+同一个公式也可以单独居中：
+\[
+  a^2+b^2=c^2
+\]
+\begin{ncode}
+\[
+  a^2+b^2=c^2
+\]
+\end{ncode}
+\end{frame}
+
+\begin{frame}[fragile]{图片}
+\begin{columns}
+\begin{column}{11\nbgrid}
+\begin{figure}
+  \includegraphics
+    [width=\linewidth]
+    {figures/mushroom-shelter.png}
+  \caption{蘑菇下的两只鸟}
+\end{figure}
+\end{column}
+\hfill
+\begin{column}{15\nbgrid}
+\begin{ncode}
+\begin{figure}
+  \includegraphics
+    [width=\linewidth]
+    {figures/mushroom-shelter.png}
+  \caption{蘑菇下的两只鸟}
+\end{figure}
+\end{ncode}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{表格}
+\begin{columns}
+\begin{column}{8\nbgrid}
+\begin{table}
+  \begin{tabular*}{\linewidth}
+    {l@{\extracolsep{\fill}}c}
+    \toprule 格式 & 对齐方式 \\
+    \midrule
+    l & 左对齐 \\
+    c & 居中 \\
+    r & 右对齐 \\ \bottomrule
+  \end{tabular*}
+  \caption{列格式}
+\end{table}
+\end{column}
+\hfill
+\begin{column}{15\nbgrid}
+\begin{ncode}
+\begin{table}
+  \begin{tabular*}{\linewidth}
+    {l@{\extracolsep{\fill}}c}
+    \toprule 格式 & 对齐方式 \\
+    \midrule
+    l & 左对齐 \\
+    c & 居中 \\
+    r & 右对齐 \\ \bottomrule
+  \end{tabular*}
+  \caption{列格式}
+\end{table}
+\end{ncode}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{nbeamer 命令}
+
+\begin{frame}[fragile,nbeamer={grid=true,boxes=true}]{排版辅助线}
+\begin{ncode}
+\nbsetup{grid=true,boxes=true}
+\end{ncode}
+在导言区写入这条命令，即可为整份文稿开启排版辅助线。
+\incode{grid} 显示网格，方便数出栏宽和留白各占几格；
+\incode{boxes} 标出标题区和内容区的边界。
+
+\begin{ncode}
+\begin{frame}[nbeamer={grid=true,boxes=true}]{分栏}
+\end{ncode}
+写在 \incode{frame} 的选项中，设置只对这一页生效。
+\end{frame}
+
+\begin{frame}[fragile]{网格间距}
+\incode{\nbgrid} 表示一格的长度，等于幻灯片宽度的 $1/32$。
+
+整页宽 32 格。默认左右页边距各占 2 格，中间的内容区宽 28 格。
+
+\begin{itemize}
+  \item \incode{\vspace{\nbgrid}} 放在两段之间，额外留出一格竖直间距。
+  \item \incode{\hspace{2\nbgrid}} 放在同一行的文字之间，留出两格水平间距。
+  \item \incode{\\[2\nbgrid]} 在段内换行，并在正常行距上额外留出两格。
+  \item \incode{\nbgrid} 也可以指定栏宽，例如 \incode{\begin{column}{13\nbgrid}}。
+\end{itemize}
+\end{frame}
+
+\end{document}

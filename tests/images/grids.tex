@@ -1,0 +1,19 @@
+\documentclass[fontset=fandol]{nbeamer}
+\usepackage{nbeamer-images}
+\newcommand{\pair}{\nimage{wide.png}\nimage{tall.png}}
+\begin{document}
+\begin{frame}{Two}
+\begin{nimagegrid}[rows=1,columns=2]\pair\end{nimagegrid}
+\end{frame}
+\begin{frame}{Four}
+\begin{nimagegrid}[rows=2,columns=2]\pair\pair\end{nimagegrid}
+\end{frame}
+\begin{frame}
+\begin{nimagegrid}[rows=2,columns=4]\pair\pair\pair\pair\end{nimagegrid}
+\end{frame}
+\begin{frame}{Captions}
+\begin{nimagegrid}[rows=2,columns=3]
+  \nimage[Wide]{wide.png}\nimage[Tall]{tall.png}\pair\pair
+\end{nimagegrid}
+\end{frame}
+\end{document}

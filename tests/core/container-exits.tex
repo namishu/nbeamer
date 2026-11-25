@@ -1,0 +1,26 @@
+\documentclass[fontset=fandol]{nbeamer}
+\newcommand{\cols}[2]{\begin{columns}
+  \begin{column}{13\nbgrid}#1\end{column}
+  \begin{column}{13\nbgrid}#2\end{column}
+\end{columns}}
+\newcommand{\mini}[1]{\begin{minipage}[t]{12\nbgrid}#1\end{minipage}}
+\newcommand{\sample}[2]{\begin{frame}{Boundary}
+  #1\par #2
+\end{frame}}
+\begin{document}
+\sample{\cols{Last}{X}}{Next}
+\sample{\cols{A\\Last}{X}}{Next}
+\sample{\cols{X}{A\\Lastgy}}{Next}
+\sample{\mini{A\\Last}}{Next}
+\sample{\cols{A\\Last}{X}}{\cols{Next\\End}{Y}}
+\sample{\cols{A\\Last}{X}}{\begin{itemize}\item Next\end{itemize}}
+\sample{\cols{A\\Last}{X}}{\begin{block}{}Next\end{block}}
+\sample{\cols{\mini{A\\Last}}{X}}{Next}
+\sample{\begin{minipage}[t]{\linewidth}\cols{A\\Last}{X}\end{minipage}}{Next}
+\sample{\cols{A\\[2\nbgrid]Last}{X}}{\vspace{\nbgrid}Next}
+\sample{Intro\par\cols{X}{A\\Last}}{Next}
+\sample{\mini{A\\Last}}{\mini{Next\\End}}
+\sample{\begin{columns}\column{13\nbgrid}X\column{13\nbgrid}A\\Last\end{columns}}{Next}
+\sample{\cols{X}{\begin{itemize}\item A\item Last\end{itemize}}}{Next}
+\sample{\cols{\begin{block}{}A\par Last\end{block}}{X}}{Next}
+\end{document}

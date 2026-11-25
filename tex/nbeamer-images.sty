@@ -1,0 +1,143 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{nbeamer-images}[2026/11/25 v0.1.0 Image grids for nbeamer]
+\RequirePackage{graphicx}
+\RequirePackage{tikz}
+\newcount\nbeamer@images@count
+\newlength\nbeamer@images@colstep
+\newlength\nbeamer@images@colgap
+\newlength\nbeamer@images@width
+\newlength\nbeamer@images@totalheight
+\newlength\nbeamer@images@height
+\newsavebox\nbeamer@images@box
+\newif\ifnbeamer@images@bottomcaption
+\newlength\nbeamer@images@captionpad
+\pgfkeys{/nbeamer/images/.is family,/nbeamer/images/.cd,
+  columns/.store in=\nbeamer@images@cols,columns/.value required,
+  rows/.store in=\nbeamer@images@rows,rows/.value required,
+  height/.store in=\nbeamer@images@requested,height/.value required}
+\ExplSyntaxOn
+% Compare in grid units, ignoring rounding from TeX's scaled-point divisions.
+\cs_new_protected:Npn \nbeamer@images@positiveTF #1
+  { \regex_match:nnTF { \A 0* [1-9] [0-9]* \Z } {#1} }
+\cs_new:Npn \nbeamer@images@units #1
+  { \fp_eval:n { round( \dim_to_fp:n {#1} / \dim_to_fp:n {\nbgrid}, 5 ) } }
+\cs_new_protected:Npn \nbeamer@images@applyheight #1
+  {
+    \edef\nbeamer@images@min{\fp_eval:n {ceil(\nbeamer@images@units\nbeamer@images@width)}}
+    \edef\nbeamer@images@max{\fp_eval:n {floor(\nbeamer@images@units\nbeamer@images@height)}}
+    \def\nbeamer@images@hint{rows=\nbeamer@images@rows,~columns=\nbeamer@images@cols\c_colon_str
+      \c_space_tl omit~height}
+    \fp_compare:nT {\nbeamer@images@units\nbeamer@images@width < \nbeamer@images@units\nbeamer@images@height}
+      {
+        \int_compare:nT {\nbeamer@images@min <= \nbeamer@images@max}
+          { \def\nbeamer@images@hint{rows=\nbeamer@images@rows,~columns=\nbeamer@images@cols\c_colon_str
+              \c_space_tl valid~height=\nbeamer@images@min..\nbeamer@images@max} }
+      }
+    \nbeamer@images@positiveTF {#1}
+      {
+        \fp_compare:nTF
+          { \nbeamer@images@units\nbeamer@images@height <= \nbeamer@images@units\nbeamer@images@width }
+          { \PackageWarning{nbeamer-images}{height=#1~ignored:~cell~already~square~or~landscape\MessageBreak\nbeamer@images@hint} }
+          {
+            \fp_compare:nTF { #1 < \nbeamer@images@units\nbeamer@images@width }
+              {
+                \setlength\nbeamer@images@height{\nbeamer@images@width}
+                \PackageWarning{nbeamer-images}{height=#1~raised~to~\nbeamer@images@units\nbeamer@images@width~grid~units~(square)\MessageBreak\nbeamer@images@hint}
+              }
+              {
+                \fp_compare:nTF { #1 > \nbeamer@images@units\nbeamer@images@height }
+                  { \PackageWarning{nbeamer-images}{height=#1~limited~to~\nbeamer@images@units\nbeamer@images@height~grid~units\MessageBreak\nbeamer@images@hint} }
+                  { \setlength\nbeamer@images@height{#1\nbgrid} }
+              }
+          }
+      }
+      { \PackageError{nbeamer-images}{Expected~a~positive~integer~for~height\MessageBreak\nbeamer@images@hint}{Specify~a~positive~integer~or~omit~height.} }
+  }
+\ExplSyntaxOff
+\newcommand{\nbeamer@images@collect}[2][]{%
+  \appto\nbeamer@images@cells{\nbeamer@images@cell{#1}{#2}}}
+\newcommand{\nbeamer@images@cell}[2]{%
+  \advance\nbeamer@images@count by 1
+  \ifnum\nbeamer@images@count>\numexpr\nbeamer@images@cols*\nbeamer@images@rows\relax
+    \PackageError{nbeamer-images}{Image grid capacity exceeded}{Increase rows or columns.}%
+  \else
+    \pgfmathtruncatemacro\nbeamer@images@col{mod(\the\nbeamer@images@count-1,\nbeamer@images@cols)}%
+    \pgfmathtruncatemacro\nbeamer@images@row{floor((\the\nbeamer@images@count-1)/\nbeamer@images@cols)}%
+    \begin{scope}[shift={(\nbeamer@images@col,-\nbeamer@images@row)}]
+      \clip (0pt,0pt) rectangle (\nbeamer@images@width,-\nbeamer@images@height);
+      \sbox\nbeamer@images@box{\includegraphics[width=\nbeamer@images@width]{#2}}%
+      \ifdim\ht\nbeamer@images@box<\nbeamer@images@height
+        \sbox\nbeamer@images@box{\includegraphics[height=\nbeamer@images@height]{#2}}%
+      \fi
+      \node[inner sep=0pt,outer sep=0pt] at (.5\nbeamer@images@width,-.5\nbeamer@images@height)
+        {\usebox\nbeamer@images@box};
+      \ifblank{#1}{}{%
+        \ifnbeamer@images@bottomcaption
+          \coordinate (caption center) at (.5\nbeamer@images@width,
+            \dimexpr-\nbeamer@images@height+\nbgrid\relax);
+        \else
+          \coordinate (caption center) at
+            (\dimexpr\nbeamer@images@width-\nbgrid\relax,-.5\nbeamer@images@height);
+        \fi
+        \node[fill=white,fill opacity=.8,text opacity=1,
+          inner sep=\nbeamer@images@captionpad,outer sep=0pt] at
+          (caption center) {%
+            \usebeamerfont{caption}\usebeamercolor[fg]{caption}%
+            \ifnbeamer@images@bottomcaption
+              \linewidth=\dimexpr\nbeamer@images@width-2\nbeamer@images@captionpad\relax
+              \nbeamer@singleline{Image caption \the\nbeamer@images@count}{#1}%
+            \else
+              \linewidth=\dimexpr\nbeamer@images@height-2\nbeamer@images@captionpad\relax
+              \rotatebox{-90}{\raisebox{0pt}[.5em][.5em]{\addCJKfontfeatures{RawFeature={vertical;+vert}}%
+                \nbeamer@singleline{Image caption \the\nbeamer@images@count}{#1}}}%
+            \fi};}%
+    \end{scope}
+  \fi}
+\newcommand{\nbeamer@images@checkcount}[2]{%
+  \ifx#2\relax
+    \PackageError{nbeamer-images}{Missing required option #1}{Specify rows and columns explicitly.}%
+    \def#2{1}%
+  \else
+    \expandafter\nbeamer@images@positiveTF\expandafter{#2}{}{%
+      \PackageError{nbeamer-images}{Expected a positive integer for #1}{Specify a positive integer.}%
+      \def#2{1}}%
+  \fi}
+\newenvironment{nimagegrid}[1][]{%
+  \let\nbeamer@images@requested\relax
+  \let\nbeamer@images@rows\relax
+  \let\nbeamer@images@cols\relax
+  \pgfkeys{/nbeamer/images/.cd,#1}%
+  \nbeamer@images@checkcount{rows}\nbeamer@images@rows
+  \nbeamer@images@checkcount{columns}\nbeamer@images@cols
+  \def\nbeamer@images@cells{}%
+  \let\nimage\nbeamer@images@collect
+}{%
+  \nbeamer@images@bottomcaptionfalse
+  \ifnum\nbeamer@images@rows=1\relax \nbeamer@images@bottomcaptiontrue\fi
+  \ifnum\nbeamer@images@rows=2\relax
+    \ifnum\nbeamer@images@cols>2\relax \nbeamer@images@bottomcaptiontrue\fi
+  \fi
+  \setlength\nbeamer@images@colgap{2\nbgrid}%
+  \ifnum\nbeamer@images@cols=4\relax
+    \setlength\nbeamer@images@colgap{\nbgrid}%
+  \fi
+  \setlength\nbeamer@images@width{\dimexpr(\linewidth-\nbeamer@images@colgap*(\nbeamer@images@cols-1))/\nbeamer@images@cols\relax}%
+  \setlength\nbeamer@images@colstep{\dimexpr\nbeamer@images@width+\nbeamer@images@colgap\relax}%
+  \setlength\nbeamer@images@height{\dimexpr(\nbeamer@bodyheight-\nbgrid*(\nbeamer@images@rows-1))/\nbeamer@images@rows\relax}%
+  \nbeamer@images@captionpad=.25\nbgrid
+  \ifdim\nbeamer@images@width>0pt\else\PackageError{nbeamer-images}{No horizontal space for images}{}\fi
+  \ifdim\nbeamer@images@height>0pt\else\PackageError{nbeamer-images}{No vertical space for images}{}\fi
+  \ifx\nbeamer@images@requested\relax\else
+    \expandafter\nbeamer@images@applyheight\expandafter{\nbeamer@images@requested}%
+  \fi
+  \setlength\nbeamer@images@totalheight{\dimexpr\nbeamer@images@height*\nbeamer@images@rows
+    +\nbgrid*(\nbeamer@images@rows-1)\relax}%
+  \nbeamer@images@count=0
+  \par\nointerlineskip\hbox{\begin{tikzpicture}[
+    baseline=\dimexpr-\nbeamer@images@totalheight+\nbeamer@baselinedepth\relax,
+    x=\nbeamer@images@colstep,
+    y=\dimexpr\nbeamer@images@height+\nbgrid\relax]
+    \path[use as bounding box] (0pt,0pt) rectangle (\linewidth,-\nbeamer@images@totalheight);
+    \begin{pgfinterruptboundingbox}\nbeamer@images@cells\end{pgfinterruptboundingbox}
+  \end{tikzpicture}}}
+\endinput

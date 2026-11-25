@@ -1,0 +1,34 @@
+\documentclass{nbeamer}
+\title{TitleMarker}
+\subtitle{SecondaryMarker}
+\author{AuthorMarker}
+\institute{InstituteMarker}
+\date{\today}
+
+\begingroup
+\year=2026 \month=3 \day=7
+\edef\actualdate{\today}\def\expecteddate{2026-03-07}
+\ifx\actualdate\expecteddate\else\errmessage{Unexpected date format}\fi
+\endgroup
+\year=2026 \month=11 \day=25
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \title{Section1}
+  \usebeamertemplate{contents page}
+\end{frame}
+
+\section{Section1}
+\begin{frame}
+  \sectionpage
+\end{frame}
+\section{Section2}
+\section{Section3}
+\section{Section4}
+\section{Section5}
+\section{Section6}
+\begin{frame}Final section\end{frame}
+\end{document}

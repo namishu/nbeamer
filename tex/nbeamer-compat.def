@@ -1,0 +1,167 @@
+% Frame metadata used by the layout and PDF templates.
+\newcommand{\nbeamer@ifuntitled}{\ifx\beamer@frametitle\@empty
+  \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\newcommand{\nbeamer@shortframetitle}{\beamer@shortframetitle}
+% Beamer gives only top-aligned frames a positive natural top skip.
+\newcommand{\nbeamer@iftopframe}[1]{\ifdim\beamer@frametopskip>0pt #1\fi}
+\define@key{beamer@col}{T}[true]{%
+  \def\beamer@colmode{T}\def\beamer@colalign{t}%
+  % Beamer opens a paragraph before this hook; discard its first baseline.
+  \def\beamer@colheadskip{\par\vskip-\nbeamer@firstbaseline\nbeamer@startbody
+    \ifbeamer@colheight\else\let\nbeamer@measuretail\nbeamer@columntail\fi}}
+% LaTeX kernel. Match the literal [t] of a standalone minipage.
+% Beamer passes its alignment macro and handles T in colheadskip above.
+\newif\ifnbeamer@standalone
+\AtBeginEnvironment{minipage}{\ifvmode\nbeamer@standalonetrue\else\nbeamer@standalonefalse\fi}
+\apptocmd{\@iiiminipage}{%
+  \let\nbeamer@measuretail\relax
+  \let\nbeamer@pendingtail\relax
+  % A top minipage exposes its first box's baseline to its parent.
+  % Page templates position their own TikZ nodes independently.
+  \ifbeamer@inframe\ifnbeamer@specialpage\else
+  \ifstrequal{#1}{t}{
+    \vbox to \nbeamer@firstbaseline{\vfil}\vskip-\nbeamer@firstbaseline
+    \nbeamer@startbody
+    \ifnbeamer@standalone\ifx\relax#2%
+      \let\nbeamer@measuretail\nbeamer@minitail
+    \fi\fi
+  }{}\fi\fi}{}{\ClassError{nbeamer}{Cannot initialize top minipages}{}}
+% Apply T first so explicit alignment options still take precedence.
+\let\nbeamer@originalcolumns\columns
+\newcommand<>{\nbeamer@columns}[1][]{\nbeamer@originalcolumns#2[T,#1,nbeamer@row]}
+\let\columns\nbeamer@columns
+% A vtop reports depth from its FIRST baseline. Preserve the depth under
+% its last line separately, so the following baseline uses normal TeX glue.
+\newdimen\nbeamer@rowdepth
+\newdimen\nbeamer@rowtail
+\newdimen\nbeamer@lastdepth
+\let\nbeamer@pendingtail\relax
+\let\nbeamer@measuretail\relax
+\let\nbeamer@finishedmini\relax
+\newcommand{\nbeamer@columntail}{%
+  % T columns have a zero-height anchor, so their entire extent is depth.
+  \@tempdima=\dimexpr\ht\@tempboxa+\dp\@tempboxa\relax
+  \ifdim\@tempdima>\nbeamer@rowdepth
+    \global\nbeamer@rowdepth=\@tempdima
+    \global\nbeamer@rowtail=\nbeamer@lastdepth
+  \fi}
+\newcommand{\nbeamer@minitail}{%
+  \xdef\nbeamer@finishedmini{\noexpand\nbeamer@restoretail
+    {\the\dimexpr\ht\@tempboxa+\dp\@tempboxa-\nbeamer@firstbaseline\relax}%
+    {\the\nbeamer@lastdepth}}}
+\newcommand{\nbeamer@restoretail}[2]{%
+  \ifvmode\ifdim\prevdepth=#1\relax\prevdepth=#2\relax\fi\fi}
+% An ordinary paragraph may start with a minipage and continue with inline
+% text. Only a terminal vbox can supply the paragraph's outgoing baseline.
+\AddToHook{para/end}{\ifnum\lastnodetype=2\else\let\nbeamer@pendingtail\relax\fi}
+\newcommand{\nbeamer@finishparagraph}{\nbeamer@pendingtail\let\nbeamer@pendingtail\relax}
+\AddToHook{para/after}{\nbeamer@finishparagraph}
+% Before the two groups close, prevdepth belongs to the minipage. After
+% they close, the kernel's completed content box is available for measurement.
+\patchcmd{\endminipage}{\color@endgroup\egroup}{%
+  \nbeamer@finishparagraph
+  \ifdim\prevdepth<0pt
+    \global\let\nbeamer@finishtail\relax
+  \else
+    \global\let\nbeamer@finishtail\nbeamer@measuretail
+  \fi
+  \global\nbeamer@lastdepth=\prevdepth
+  \color@endgroup\egroup
+  \global\let\nbeamer@finishedmini\relax
+  \nbeamer@finishtail}{}{\ClassError{nbeamer}{Cannot measure minipage tail}{}}
+\AfterEndEnvironment{minipage}{\let\nbeamer@pendingtail\nbeamer@finishedmini}
+% Decorate Beamer's final entry/exit pair after it has processed the user's
+% width and alignment options. Its row is a vertical-list hbox, not a paragraph.
+\define@key{beamer@col}{nbeamer@row}[]{%
+  \preto\beamer@colentrycode{\nbeamer@beginrow}%
+  \appto\beamer@colexitcode{\nbeamer@endrow}}
+\newcommand{\nbeamer@beginrow}{%
+  \edef\nbeamer@restorerow{\global\nbeamer@rowdepth=\the\nbeamer@rowdepth\relax
+    \global\nbeamer@rowtail=\the\nbeamer@rowtail\relax}%
+  \global\nbeamer@rowdepth=-1pt
+  \ifvmode\ifbeamer@colheight\else
+    \ifdefstring{\beamer@colmode}{T}{\ifnbeamer@firstparagraph\else\vskip\parskip\fi}{}%
+  \fi\fi}
+\newcommand{\nbeamer@endrow}{%
+  \ifdim\nbeamer@rowdepth<0pt\else
+    \nbeamer@restoretail{\nbeamer@rowdepth}{\nbeamer@rowtail}%
+  \fi
+  \nbeamer@restorerow}
+% Center the formatted number in the space reserved at this level.
+\appto\beamer@enum@{%
+  \let\nbeamer@enumlabel\makelabel
+  \def\makelabel#1{\nbeamer@enumlabel{\makebox[\leftmargin][c]{#1}}}}
+% Let an explicit \vfill take precedence over the default bottom stretch.
+% Reserve a quarter row below the final baseline, allowing for descenders.
+\newcommand{\nbeamer@bottomstretch}{%
+  \beamer@framebottomskip=\dimexpr\nbeamer@baselinedepth-\dp\beamer@framebox\relax
+  \advance\beamer@framebottomskip by 0pt plus 1fil}
+\newcommand{\nbeamer@untitledlayout}{%
+  \ifnbeamer@specialpage\else
+    \nbeamer@iftopframe{
+      \nbeamer@bottomstretch
+      \beamer@frametopskip=\nbeamer@untitledtop
+      \beamer@frametopskipautobreak=\beamer@frametopskip
+    }
+    \ifnbeamer@boxes
+      \setbox\beamer@frametitlebox=\vbox{\hbox{%
+        \begin{tikzpicture}[remember picture,overlay]
+          \nbeamer@drawbodybox
+        \end{tikzpicture}}}%
+    \fi
+  \fi}
+% In all Beamer output modes the title box is unpacked before the body,
+% and exitcode runs after the footnotes. Install the pair after measuring.
+\newcommand{\nbeamer@prepareclip}{%
+  \ifnbeamer@specialpage\else
+    \setbox\beamer@frametitlebox=\vbox{\unvbox\beamer@frametitlebox\nbeamer@clipbody}%
+    \appto\beamer@exitcode{\special{pdf:code EMC Q /NBeamerBodyEnd MP}}%
+  \fi}
+% The container supplies its own first baseline at the body edge.
+\newcommand{\nbeamer@titlebaseline}{%
+  \nbeamer@iftopframe{
+    \nbeamer@bottomstretch
+    \beamer@frametopskip=0pt
+    \beamer@frametopskipautobreak=\beamer@frametopskip
+  }}
+\newcommand{\nbeamer@limittocentries}{%
+  \let\nbeamer@sectionintoc\beamer@sectionintoc
+  \def\beamer@sectionintoc##1##2##3##4##5{%
+    \ifnum##4=\beamer@showpartnumber\relax
+      \nbeamer@nexttocrow{\nbeamer@sectionintoc{##1}{##2}{##3}{##4}{##5}}%
+    \fi}}
+% Upstream compatibility: frame setup, slide assembly, and invisible overlays.
+\newcommand{\nbeamer@resetdebug}{%
+  \let\ifnbeamer@grid\ifnbeamer@defaultgrid
+  \let\ifnbeamer@boxes\ifnbeamer@defaultboxes
+}
+\pretocmd{\beamer@@@@frame}{\nbeamer@resetdebug}{}{\ClassError{nbeamer}{Unable to initialize frame debug settings}{Check the installed Beamer version.}}
+\patchcmd{\beamer@frameslide}{\vskip-\parskip\vbox{}}{\vbox{}\nbeamer@startbody}
+  {}{\ClassError{nbeamer}{Cannot initialize frame body}{}}
+\BeforeBeginEnvironment{beamer@frameslide}{\global\nbeamer@specialpagefalse}
+\patchcmd{\endbeamer@frameslide}
+  {\setbox\beamer@frametitlebox=\box\voidb@x}
+  {\setbox\beamer@frametitlebox=\box\voidb@x\nbeamer@untitledlayout}
+  {}{\ClassError{nbeamer}{Unable to initialize untitled frame layout}{}}
+\patchcmd{\endbeamer@frameslide}
+  {\ifx\beamer@zoomer\@empty}
+  {\nbeamer@prepareclip\ifx\beamer@zoomer\@empty}
+  {}{\ClassError{nbeamer}{Unable to install the body clip}{}}
+\patchcmd{\endbeamer@frameslide}
+  {\setbox\beamer@frametitlebox=\vbox}
+  {\nbeamer@titlebaseline\setbox\beamer@frametitlebox=\vbox}
+  {}{\ClassError{nbeamer}{Unable to align titled frame baselines}{}}
+\patchcmd{\endbeamer@frameslide}{\vskip0.25em}{}%
+  {}{\ClassError{nbeamer}{Unable to remove Beamer title padding}{}}
+% Patch copies so a driver change cannot install only half a marked pair.
+\let\nbeamer@beginhidden\pgfsys@begininvisible
+\let\nbeamer@endhidden\pgfsys@endinvisible
+\newcommand{\nbeamer@hiddenerror}{\ClassError{nbeamer}{Unable to mark hidden overlays}
+  {Check the installed PGF driver before using the PDF bounds checker.}}
+\pretocmd{\nbeamer@beginhidden}{\special{pdf:code /NBeamerHidden BMC}}{%
+  \apptocmd{\nbeamer@endhidden}{\special{pdf:code EMC /NBeamerHiddenEnd MP}}{%
+    \let\pgfsys@begininvisible\nbeamer@beginhidden
+    \let\pgfsys@endinvisible\nbeamer@endhidden
+  }{\nbeamer@hiddenerror}
+}{\nbeamer@hiddenerror}
+\endinput

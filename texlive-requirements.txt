@@ -1,0 +1,15 @@
+# TeX Live package names for nbeamer, its extensions, and the documentation.
+xetex
+latexmk
+beamer
+iftex
+xecjk
+fontspec
+ulem
+pgf
+graphics
+fandol
+lm
+listings
+booktabs
+ragged2e

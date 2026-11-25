@@ -1,0 +1,16 @@
+\documentclass[fontset=fandol]{nbeamer}
+\usepackage{nbeamer-images}
+% Put a colored suffix immediately beyond the field so clipping can be checked in the rendered page.
+\newcommand{\sample}{\makebox[\linewidth][l]{Start WWWW}\textcolor{red}{End}}
+\begin{document}
+\begin{frame}{Horizontal}
+\begin{nimagegrid}[rows=1,columns=2]
+\nimage[\sample]{wide.png}\nimage[Short]{tall.png}
+\end{nimagegrid}
+\end{frame}
+\begin{frame}{Vertical}
+\begin{nimagegrid}[rows=2,columns=2]
+\nimage[\sample]{wide.png}\nimage[Short]{tall.png}
+\end{nimagegrid}
+\end{frame}
+\end{document}

@@ -1,0 +1,10 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{nbeamer-code}[2026/11/25 v0.1.0 Grid-aligned code listings]
+\RequirePackage{listings}
+\setbeamerfont{code body}{family=\ttfamily,size=\small}
+\NewDocumentCommand{\incode}{v}{{\ttfamily#1}}
+\lstnewenvironment{ncode}[1][]{%
+  \lstset{columns=fullflexible,keepspaces=true,showstringspaces=false,breaklines=true,
+    aboveskip={\nbeamer@beforeblockskip},belowskip=0pt,basicstyle=\usebeamerfont{code body},#1}%
+  \appto\lst@basicstyle{\nbeamer@gridbaseline}}{}
+\endinput
