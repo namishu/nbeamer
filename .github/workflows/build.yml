@@ -45,7 +45,12 @@ jobs:
         with:
           name: package
           path: .build/dist
-      - run: gh release create "$TAG" .build/dist/nbeamer --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+      - run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" .build/dist/nbeamer --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" .build/dist/nbeamer --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
+          fi
         env:
           TAG: ${{ github.ref_name }}
           GH_TOKEN: ${{ github.token }}

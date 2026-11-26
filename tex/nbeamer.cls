@@ -270,11 +270,7 @@
   \par\setlength{\parskip}{\nbeamer@gridunit}%
   \ifx\insertblocktitle\@empty\else
     \sbox{\nbeamer@fieldbox}{{\usebeamerfont{#1}\insertblocktitle\@addpunct{.}}}%
-    % Round the title width up to whole columns, then leave one column clear.
-    \@tempcnta=\numexpr\number\wd\nbeamer@fieldbox+\number\nbeamer@gridunit-1\relax
-    \divide\@tempcnta by \number\nbeamer@gridunit\relax
-    \advance\@tempcnta by 1
-    \noindent\hbox to \@tempcnta\nbeamer@gridunit{\usebox{\nbeamer@fieldbox}\hfil}\nobreak
+    \noindent\usebox{\nbeamer@fieldbox}\nobreak\hspace{\nbeamer@gridunit}%
   \fi\ignorespaces}
 \newcommand{\nbeamer@blockend}{\par}
 \setbeamerfont*{block title alerted}{parent=block title}

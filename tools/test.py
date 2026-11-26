@@ -232,10 +232,15 @@ def check_boundaries(work, env):
             y = {span["text"].strip(): span["origin"][1] for block in page.get_text("dict")["blocks"]
                  for line in block.get("lines", []) for span in line["spans"]}
             if 4 <= page.number < 10:  # Named block, alertblock and exampleblock, each in two positions.
+                title, = page.search_for("Title.")
+                first, = page.search_for("First")
+                continued, = page.search_for("Continued")
+                assert abs(first.x0 - title.x1 - grid) < .05, (page.number, title, first)
+                assert abs(continued.x0 - title.x0) < .05
                 assert abs(y["Title."] - y["First"]) < .05, (page.number, y)
             pairs = [("Inside", "Outside")]
             if 4 <= page.number < 14:  # Blocks and proofs contain an explicit first paragraph.
-                pairs.append(("First", "Inside"))
+                pairs.append(("Continued" if page.number < 10 else "First", "Inside"))
             if page.number >= 14:  # Nested lists must retain both items.
                 pairs.extend([("Outer", "Inner"), ("Inner", "Inside")])
             for above, below in pairs:
